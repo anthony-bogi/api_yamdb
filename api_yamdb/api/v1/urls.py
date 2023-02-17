@@ -15,5 +15,5 @@ v1_router.register('categories', CategoryViewSet, basename='categories')
 v1_router.register('genres', GenreViewSet, basename='genres')
 
 urlpatterns = [
-    path('v1/', include('v1_router.urls')),
+    path('', include(v1_router.urls)),
 ]
