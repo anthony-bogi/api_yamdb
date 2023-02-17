@@ -11,12 +11,12 @@ class User(AbstractUser):
         ('admin', 'admin'),
     )
     username = models.CharField(
-        max_length=200,
+        max_length=150,
         unique=True
     )
     email = models.EmailField(
         verbose_name='e-mail адрес',
-        max_length=255,
+        max_length=254,
         unique=True
     )
     bio = models.TextField(

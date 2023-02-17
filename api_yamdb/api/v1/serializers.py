@@ -6,17 +6,19 @@ from users.models import User
 
 from .utility import (
     generate_confirmation_code,
-    send_email_with_confirmation_code
+    send_email_with_confirmation_code,
+    username_is_valid
 )
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
     """Сериализатор для Администратора."""
     username = serializers.CharField(
-        max_length=200,
+        max_length=150,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
+        max_length=254,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
 
@@ -46,14 +48,22 @@ class AdminUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Ошибка в валидации имени с me.')
         return value
 
+    def validate(self, data):
+        if not username_is_valid(data.get('username')):
+            raise serializers.ValidationError(
+                "Неожиданный паттерн"
+            )
+        return data
+
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для пользователя."""
     username = serializers.CharField(
-        max_length=200,
+        max_length=150,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
+        max_length=254,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     role = serializers.CharField(max_length=15, read_only=True)
@@ -83,15 +93,23 @@ class UserSerializer(serializers.ModelSerializer):
         if value == 'me':
             raise serializers.ValidationError('Ошибка в валидации имени с me.')
         return value
+    
+    def validate(self, data):
+        if not username_is_valid(data.get('username')):
+            raise serializers.ValidationError(
+                "Неожиданный паттерн"
+            )
+        return data
 
 
 class ConfirmationCodeSerializer(serializers.ModelSerializer):
     """Сериализатор для получения кода подтверждения."""
     username = serializers.CharField(
-        max_length=200,
+        max_length=150,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
+        max_length=254,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
 
@@ -118,6 +136,13 @@ class ConfirmationCodeSerializer(serializers.ModelSerializer):
         if value == 'me':
             raise serializers.ValidationError('Ошибка в валидации имени с me.')
         return value
+
+    def validate(self, data):
+        if not username_is_valid(data.get('username')):
+            raise serializers.ValidationError(
+                "Неожиданный паттерн"
+            )
+        return data
 
 
 class TokenSerializer(serializers.Serializer):
