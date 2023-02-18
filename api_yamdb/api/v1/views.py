@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import User
-from titles.models import Review, Title
+from reviews.models import Review, Title
 from .permissions import (
     IsAdminOrSuperuserPermission,
 )

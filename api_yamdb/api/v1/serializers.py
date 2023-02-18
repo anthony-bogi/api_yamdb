@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 from rest_framework.generics import get_object_or_404
-from titles.models import Review, Comment, Title
+from reviews.models import Review, Comment, Title
 from users.models import User
 
 from .utility import (
@@ -155,7 +155,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
     title = serializers.SlugRelatedField(
         queryset=Title.objects.all(),
-        slug_field='title',
+        slug_field='name',
     )
 
     class Meta:
@@ -181,7 +181,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
     review = serializers.SlugRelatedField(
         queryset=Review.objects.all(),
-        slug_field='review',
+        slug_field='text',
     )
 
     class Meta:
