@@ -3,7 +3,7 @@ from reviews.models import Genre, Category, Title
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    """Сериализатор для произведений."""
+    """Сериализатор для жанров."""
 
     class Meta:
         model = Genre
@@ -22,7 +22,6 @@ class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для произведений."""
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
-    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
