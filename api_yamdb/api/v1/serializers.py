@@ -1,10 +1,56 @@
-from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 from rest_framework.generics import get_object_or_404
+from rest_framework import serializers
+from reviews.models import Review, Comment, Title, Genre, Category
 
 from users.models import User
 
 from .utility import username_is_valid
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор для жанров."""
+
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug')
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для категорий."""
+
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для произведений."""
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'description', 'year', 'category', 'genre', 'rating'
+        )
+
+
+class TitleSerializerCreate(serializers.ModelSerializer):
+    """Сериализатор для работы с произведениями при создании."""
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True
+    )
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'description', 'year', 'category', 'genre')
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
@@ -148,3 +194,49 @@ class TokenSerializer(serializers.Serializer):
                 'Такого пользователя не существует.'
             )
         return data
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор модели отзывов.
+    """
+    author = serializers.SlugRelatedField(
+        queryset=User.objects.all(),
+        slug_field='username',
+        default=serializers.CurrentUserDefault()
+    )
+    title = serializers.SlugRelatedField(
+        queryset=Title.objects.all(),
+        slug_field='name',
+    )
+
+    class Meta:
+        fields = '__all__'
+        read_only_fields = ('id', 'author', 'title', 'created')
+        model = Review
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=('author', 'title')
+            )
+        ]
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор модели комментариев.
+    """
+    author = serializers.SlugRelatedField(
+        queryset=User.objects.all(),
+        slug_field='username',
+        default=serializers.CurrentUserDefault()
+    )
+    review = serializers.SlugRelatedField(
+        queryset=Review.objects.all(),
+        slug_field='text',
+    )
+
+    class Meta:
+        model = Comment
+        read_only_fields = ('id', 'author', 'review', 'created')
+        fields = '__all__'
