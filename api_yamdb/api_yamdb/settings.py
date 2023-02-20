@@ -1,9 +1,15 @@
 import os
+from pathlib import Path
 
-BASE_DIR = BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+from dotenv import find_dotenv, load_dotenv
+from datetime import timedelta
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs'
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(find_dotenv())
+
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -21,10 +27,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'api.apps.ApiConfig',
+    'users.apps.UsersConfig',
     'rest_framework_simplejwt',
-    'django_filters',
-    'api',
-    'reviews',
+    'reviews'
 ]
 
 MIDDLEWARE = [
@@ -103,8 +109,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

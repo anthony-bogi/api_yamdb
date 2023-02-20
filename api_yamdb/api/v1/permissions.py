@@ -11,6 +11,7 @@ class IsAdminOrSuperuserPermission(permissions.BasePermission):
         return False
 
 
+
 class IsModeratorPermission(permissions.BasePermission):
     """Доступ разрешен только для Модератора."""
     message = 'У Вас нет разрешения для дальнейшей работы!'
