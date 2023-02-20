@@ -1,8 +1,12 @@
-from rest_framework import filters, viewsets, permissions, mixins, status
-from rest_framework.decorators import action, api_view
+from rest_framework import filters, viewsets, permissions, status
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.conf import settings
 
 from users.models import User
 from .permissions import (
@@ -18,6 +22,7 @@ from .serializers import (
 
 class UserViewSet(viewsets.ModelViewSet):
     """Работа с пользователями для администратора."""
+    http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = User.objects.all()
     permission_classes = (
         permissions.IsAuthenticated,
@@ -26,13 +31,10 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
-        if (
-            self.request.user.role != 'admin'
-            or self.request.user.is_superuser
-        ):
+        if (self.request.user.role != 'admin'
+            or self.request.user.is_superuser):
             return UserSerializer
         return AdminUserSerializer
 
@@ -58,23 +60,32 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class SignUpViewSet(mixins.CreateModelMixin,
-                    mixins.UpdateModelMixin,
-                    viewsets.GenericViewSet):
-    """Регистрация нового пользователя и получение кода подтверждения."""
-    queryset = User.objects.all()
-    serializer_class = ConfirmationCodeSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK,
-            headers=headers
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signup(request):
+    serializer = ConfirmationCodeSerializer(data=request.data)
+    if User.objects.filter(username=request.data.get('username'),
+                           email=request.data.get('email')).exists():
+        user, created = User.objects.get_or_create(
+            username=request.data.get('username')
         )
+        if created is False:
+            confirmation_code = default_token_generator.make_token(user)
+            user.confirmation_code = confirmation_code
+            user.save()
+            return Response('Ваш токен обновлен!', status=status.HTTP_200_OK)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    user = User.objects.get(username=request.data.get('username'),
+                            email=request.data.get('email'))
+    confirmation_code = default_token_generator.make_token(user)
+    user.confirmation_code = confirmation_code
+    send_mail(f'Привет, {str(user.username)}! Ваш код подтверждения:',
+              confirmation_code,
+              settings.MAILING_EMAIL,
+              [request.data['email']],
+              fail_silently=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(http_method_names=['POST', ])
