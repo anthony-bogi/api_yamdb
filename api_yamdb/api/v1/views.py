@@ -1,22 +1,59 @@
+from .filters import TitleFilter
+from reviews.models import Category, Genre, Title, Review
 from rest_framework import filters, viewsets, permissions, mixins, status
 from rest_framework.decorators import action, api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from users.models import User
-from reviews.models import Review, Title
 from .permissions import (
-    IsAdminOrSuperuserPermission,
+    IsAdminOrSuperuserPermission
 )
 from .serializers import (
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer,
+    TitleSerializerCreate,
     AdminUserSerializer,
     UserSerializer,
     ConfirmationCodeSerializer,
     TokenSerializer,
     ReviewSerializer,
     CommentSerializer
-)
+    )
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для произведений."""
+    queryset = Title.objects.all().order_by('name')
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdminOrSuperuserPermission]
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH', 'DELETE',):
+            return TitleSerializerCreate
+        return TitleSerializer
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """Вьюсет для категорий."""
+    queryset = Category.objects.all().order_by('name')
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminOrSuperuserPermission]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
+    lookup_field = 'slug'
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    """Вьюсет для жанров."""
+    queryset = Genre.objects.all().order_by('name')
+    serializer_class = GenreSerializer
+    permission_classes = [IsAdminOrSuperuserPermission]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
+    lookup_field = 'slug'
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -1,14 +1,58 @@
-from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 from rest_framework.generics import get_object_or_404
-from reviews.models import Review, Comment, Title
+from reviews.models import Review, Comment, Title, Genre, Category
 from users.models import User
-
 from .utility import (
     generate_confirmation_code,
     send_email_with_confirmation_code,
     username_is_valid
 )
+from rest_framework import serializers
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор для жанров."""
+
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug')
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для категорий."""
+
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для произведений."""
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'description', 'year', 'category', 'genre', 'rating'
+        )
+
+
+class TitleSerializerCreate(serializers.ModelSerializer):
+    """Сериализатор для работы с произведениями при создании."""
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True
+    )
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'description', 'year', 'category', 'genre')
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
