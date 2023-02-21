@@ -68,6 +68,10 @@ class Title(models.Model):
         Genre,
         through='GenreTitle',
     )
+    rating = models.IntegerField(
+        null=True,
+        default=None
+    )
 
     class Meta:
         verbose_name = 'Произведение'
@@ -91,7 +95,7 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews')
     text = models.TextField()
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
     score = models.PositiveSmallIntegerField(
         validators=(
@@ -100,6 +104,14 @@ class Review(models.Model):
         )
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_review'
+            ),
+        ]
+
 
 class Comment(models.Model):
     author = models.ForeignKey(
@@ -107,5 +119,5 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)

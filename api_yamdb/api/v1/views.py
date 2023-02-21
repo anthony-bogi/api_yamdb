@@ -1,4 +1,4 @@
-from rest_framework import filters, viewsets, permissions, mixins, status
+from rest_framework import filters, viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
@@ -9,11 +9,13 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db.models import Avg
 
 from users.models import User
 from .permissions import (
     IsAdminOrSuperuserPermission,
-    TitlePermission
+    TitlePermission,
+    IsAdminModeratorOwnerPermission
 )
 from .serializers import (
     CategorySerializer,
@@ -31,7 +33,9 @@ from .serializers import (
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений."""
-    queryset = Title.objects.all().order_by('name')
+    queryset = Title.objects.all().annotate(
+        Avg("reviews__score")
+    ).order_by('name')
     serializer_class = TitleSerializer
     permission_classes = [TitlePermission]
     filterset_class = TitleFilter
@@ -76,8 +80,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if (self.request.user.role != 'admin'
-            or self.request.user.is_superuser
-):
+            or self.request.user.is_superuser):
             return UserSerializer
         return AdminUserSerializer
 
@@ -150,11 +153,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     или GET, PUT, PATCH, DELETE для отзывов по id.
     """
     serializer_class = ReviewSerializer
-    permission_classes = []
+    permission_classes = [IsAdminModeratorOwnerPermission]
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        return title.reviews
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -167,11 +170,11 @@ class CommentViewSet(viewsets.ModelViewSet):
     или GET, PUT, PATCH, DELETE для комментариев по id.
     """
     serializer_class = CommentSerializer
-    permission_classes = []
+    permission_classes = [IsAdminModeratorOwnerPermission]
 
     def get_queryset(self):
         review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
-        return review.comments
+        return review.comments.all()
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
