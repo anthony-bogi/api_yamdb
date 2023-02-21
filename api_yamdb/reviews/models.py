@@ -2,6 +2,7 @@ from django.db import models
 from users.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+
 class Genre(models.Model):
     """Модель для жанров"""
     name = models.CharField(
@@ -83,7 +84,7 @@ class GenreTitle(models.Model):
     def __str__(self):
         return f'{self.title} {self.genre}'
 
-    
+
 class Review(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews')

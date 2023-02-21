@@ -12,7 +12,8 @@ from django.conf import settings
 
 from users.models import User
 from .permissions import (
-    IsAdminOrSuperuserPermission
+    IsAdminOrSuperuserPermission,
+    TitlePermission
 )
 from .serializers import (
     CategorySerializer,
@@ -25,14 +26,14 @@ from .serializers import (
     TokenSerializer,
     ReviewSerializer,
     CommentSerializer
-    )
+)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений."""
     queryset = Title.objects.all().order_by('name')
     serializer_class = TitleSerializer
-    permission_classes = [IsAdminOrSuperuserPermission]
+    permission_classes = [TitlePermission]
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
@@ -45,7 +46,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """Вьюсет для категорий."""
     queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrSuperuserPermission]
+    permission_classes = [TitlePermission]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
     lookup_field = 'slug'
@@ -55,7 +56,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     """Вьюсет для жанров."""
     queryset = Genre.objects.all().order_by('name')
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrSuperuserPermission]
+    permission_classes = [TitlePermission]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
     lookup_field = 'slug'
@@ -75,7 +76,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if (self.request.user.role != 'admin'
-            or self.request.user.is_superuser):
+            or self.request.user.is_superuser
+):
             return UserSerializer
         return AdminUserSerializer
 
