@@ -127,7 +127,7 @@ class UserSerializer(serializers.ModelSerializer):
                 fields=['username', 'email']
             ),
         )
-    
+
     def validate(self, data):
         if not username_is_valid(data.get('username')):
             raise serializers.ValidationError(

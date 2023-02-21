@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(find_dotenv())
 
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = 'dsfdfdsfds'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'api.apps.ApiConfig',
     'users.apps.UsersConfig',
     'rest_framework_simplejwt',
