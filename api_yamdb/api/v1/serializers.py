@@ -1,13 +1,11 @@
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 from rest_framework.generics import get_object_or_404
-from reviews.models import Review, Comment, Title, Genre, Category
-from users.models import User
-from .utility import (
-    generate_confirmation_code,
-    send_email_with_confirmation_code,
-    username_is_valid
-)
 from rest_framework import serializers
+from reviews.models import Review, Comment, Title, Genre, Category
+
+from users.models import User
+
+from .utility import username_is_valid
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -87,16 +85,13 @@ class AdminUserSerializer(serializers.ModelSerializer):
             ),
         )
 
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError('Ошибка в валидации имени с me.')
-        return value
-
     def validate(self, data):
         if not username_is_valid(data.get('username')):
             raise serializers.ValidationError(
                 "Неожиданный паттерн"
             )
+        if data.get('username') == 'me':
+            raise serializers.ValidationError('Недопустимое имя пользователя.')
         return data
 
 
@@ -132,30 +127,19 @@ class UserSerializer(serializers.ModelSerializer):
                 fields=['username', 'email']
             ),
         )
-
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError('Ошибка в валидации имени с me.')
-        return value
     
     def validate(self, data):
         if not username_is_valid(data.get('username')):
             raise serializers.ValidationError(
                 "Неожиданный паттерн"
             )
+        if data.get('username') == 'me':
+            raise serializers.ValidationError('Недопустимое имя пользователя.')
         return data
 
 
 class ConfirmationCodeSerializer(serializers.ModelSerializer):
-    """Сериализатор для получения кода подтверждения."""
-    username = serializers.CharField(
-        max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
-    email = serializers.EmailField(
-        max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
+    """Сериализатор для получения кода подтверждения, регистрации."""
 
     class Meta:
         fields = (
@@ -170,21 +154,20 @@ class ConfirmationCodeSerializer(serializers.ModelSerializer):
             ),
         )
 
-    def create(self, validated_data):
-        validated_data['confirmation_code'] = generate_confirmation_code()
-        user = User.objects.create_user(**validated_data)
-        send_email_with_confirmation_code(validated_data)
-        return user
-
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError('Ошибка в валидации имени с me.')
-        return value
-
     def validate(self, data):
         if not username_is_valid(data.get('username')):
             raise serializers.ValidationError(
                 "Неожиданный паттерн"
+            )
+        if User.objects.filter(username=data.get('username')).exists():
+            raise serializers.ValidationError(
+                'Имя уже занято другим пользователем'
+            )
+        if data.get('username') == 'me':
+            raise serializers.ValidationError('Недопустимое имя пользователя.')
+        if User.objects.filter(email=data.get('email')).exists():
+            raise serializers.ValidationError(
+                'E-mail уже занят другим пользователем'
             )
         return data
 
@@ -192,11 +175,11 @@ class ConfirmationCodeSerializer(serializers.ModelSerializer):
 class TokenSerializer(serializers.Serializer):
     """Сериализатор для получения токена."""
     username = serializers.CharField(
-        max_length=250,
+        max_length=150,
         write_only=True,
     )
     confirmation_code = serializers.CharField(
-        max_length=255,
+        max_length=254,
         write_only=True
     )
 
