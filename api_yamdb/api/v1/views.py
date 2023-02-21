@@ -76,7 +76,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if (self.request.user.role != 'admin'
-            or self.request.user.is_superuser):
+            or self.request.user.is_superuser
+):
             return UserSerializer
         return AdminUserSerializer
 
