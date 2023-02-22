@@ -9,6 +9,7 @@ username_validator = RegexValidator(
     code='invalid',
 )
 
+
 def username_is_valid(username):
     try:
         username_validator(username)

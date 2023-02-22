@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -36,8 +37,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
         Avg("reviews__score")
     ).order_by('name')
-    serializer_class = TitleSerializer
+    serializer_class = TitleSerializerCreate
     permission_classes = [TitlePermission]
+    filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
@@ -53,7 +55,17 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [TitlePermission]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
-    lookup_field = 'slug'
+
+    @action(
+        detail=False, methods=['delete'],
+        url_path=r'(?P<slug>\w+)',
+        lookup_field='slug', url_name='category_slug'
+    )
+    def get_category(self, request, slug):
+        category = self.get_object()
+        serializer = CategorySerializer(category)
+        category.delete()
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -63,7 +75,17 @@ class GenreViewSet(viewsets.ModelViewSet):
     permission_classes = [TitlePermission]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
-    lookup_field = 'slug'
+
+    @action(
+        detail=False, methods=['delete'],
+        url_path=r'(?P<slug>\w+)',
+        lookup_field='slug', url_name='category_slug'
+    )
+    def get_genre(self, request, slug):
+        category = self.get_object()
+        serializer = CategorySerializer(category)
+        category.delete()
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 
 class UserViewSet(viewsets.ModelViewSet):
