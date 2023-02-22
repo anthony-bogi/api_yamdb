@@ -1,9 +1,8 @@
-from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
-from rest_framework.generics import get_object_or_404
 from rest_framework import serializers
-from reviews.models import Review, Comment, Title, Genre, Category
 from rest_framework.exceptions import ValidationError
-
+from rest_framework.generics import get_object_or_404
+from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 from .utility import username_is_valid
