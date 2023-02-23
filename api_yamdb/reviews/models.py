@@ -82,8 +82,14 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
-    genre = models.ForeignKey('Genre', on_delete=models.CASCADE)
-    title = models.ForeignKey('Title', on_delete=models.CASCADE)
+    genre = models.ForeignKey(
+        'Genre',
+        on_delete=models.CASCADE
+    )
+    title = models.ForeignKey(
+        'Title',
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return f'{self.title} {self.genre}'
@@ -91,12 +97,21 @@ class GenreTitle(models.Model):
 
 class Review(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews')
+        User,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='reviews')
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True)
+        'Дата добавления',
+        auto_now_add=True,
+        db_index=True
+    )
     score = models.PositiveSmallIntegerField(
         validators=(
             MinValueValidator(1),
@@ -107,7 +122,7 @@ class Review(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['title', 'author'],
+                fields=('title', 'author'),
                 name='unique_review'
             ),
         ]
@@ -115,9 +130,18 @@ class Review(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments')
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments')
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True)
+        'Дата добавления',
+        auto_now_add=True,
+        db_index=True
+    )

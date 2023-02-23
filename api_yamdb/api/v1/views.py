@@ -44,7 +44,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [TitlePermission]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
+    search_fields = ['name',]
 
     @action(
         detail=False, methods=['delete'],
@@ -136,8 +136,8 @@ def signup(request):
             return Response('Ваш токен обновлен!', status=status.HTTP_200_OK)
     serializer.is_valid(raise_exception=True)
     serializer.save()
-    user = User.objects.get(username=request.data.get('username'),
-                            email=request.data.get('email'))
+    user, created = User.objects.get_or_create(username=request.data.get('username'),
+                                               email=request.data.get('email'))
     confirmation_code = default_token_generator.make_token(user)
     user.confirmation_code = confirmation_code
     send_mail(f'Привет, {str(user.username)}! Ваш код подтверждения:',
