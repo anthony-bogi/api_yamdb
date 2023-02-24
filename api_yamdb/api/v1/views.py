@@ -44,7 +44,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [TitlePermission]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name',]
+    search_fields = ('name',)
 
     @action(
         detail=False, methods=['delete'],
