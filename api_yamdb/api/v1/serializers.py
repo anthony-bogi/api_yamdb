@@ -12,16 +12,16 @@ class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для жанров."""
 
     class Meta:
+        exclude = ('id',)
         model = Genre
-        fields = ('name', 'slug')
 
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для категорий."""
 
     class Meta:
+        exclude = ('id',)
         model = Category
-        fields = ('name', 'slug')
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -34,9 +34,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = (
-            'id', 'name', 'description', 'year', 'category', 'genre', 'rating'
-        )
+        fields = '__all__'
 
 
 class TitleSerializerCreate(serializers.ModelSerializer):
@@ -53,9 +51,7 @@ class TitleSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = (
-            'id', 'name', 'description', 'year', 'category', 'genre', 'rating'
-        )
+        fields = '__all__'
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
